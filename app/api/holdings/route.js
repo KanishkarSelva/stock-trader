@@ -1,14 +1,9 @@
-import Database from '../../../lib/database';
+import { supabase } from '../../../lib/supabaseClient';
 
 export async function GET() {
-  const db = new Database();
-  try {
-    const holdings = await db.getAllHoldings();
-    return Response.json({ holdings });
-  } catch (error) {
-    console.error('Error fetching holdings:', error);
-    return Response.json({ error: 'Failed to fetch holdings' }, { status: 500 });
-  } finally {
-    await db.close();
-  }
+  const { data: holdings, error } = await supabase.from('holdings').select('*');
+
+  if (error) return new Response(JSON.stringify({ error: error.message }), { status: 500 });
+
+  return new Response(JSON.stringify({ holdings }));
 }
