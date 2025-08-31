@@ -7,6 +7,8 @@ import TradesList from './components/TradesList';
 import HoldingsList from './components/HoldingsList';
 import PortfolioSummary from './components/PortfolioSummary';
 import PortfolioCharts from './components/PortfolioCharts';
+import Image from "next/image";
+
 
 export default function Home() {
   const [trades, setTrades] = useState([]);
@@ -76,11 +78,13 @@ export default function Home() {
     <header className="bg-white shadow-sm">
       <div className="mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center py-4">
         <div className="flex items-center">
-          <img
-            src="/logo/logo.png"
-            alt="Logo"
-            className="h-8 w-8 mr-2 object-contain"
-          />
+        <Image
+          src="/logo.png"
+          alt="Logo"
+          width={32}
+          height={32}
+          className="mr-2 object-contain"
+        />
           <h1 className="text-2xl font-bold text-gray-900">K's Shares</h1>
         </div>
 
