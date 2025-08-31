@@ -72,35 +72,41 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center py-4">
-          <div className="flex items-center">
-            <BarChart3 className="h-6 w-6 text-blue-600 mr-2" />
-            <h1 className="text-2xl font-bold text-gray-900">Stock Tracker</h1>
-          </div>
-          <div className="flex space-x-2">
-            <button
-              onClick={fetchData}
-              className="text-gray-600 hover:text-gray-800"
-              title="Refresh data"
-            >
-              <RefreshCw className="h-5 w-5" />
-            </button>
-            <button
-              onClick={() => {
-                setInitialFormData({});
-                setDefaultFormType('BUY');
-                setShowForm(true);
-              }}
-              className="bg-blue-600 text-white px-3 py-1 rounded-md flex items-center hover:bg-blue-700"
-            >
-              <Plus className="h-4 w-4 mr-1" />
-              Add Trade
-            </button>
-          </div>
+          {/* Header */}
+    <header className="bg-white shadow-sm">
+      <div className="mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center py-4">
+        <div className="flex items-center">
+          <img
+            src="/logo/logo.png"
+            alt="Logo"
+            className="h-8 w-8 mr-2 object-contain"
+          />
+          <h1 className="text-2xl font-bold text-gray-900">K's Shares</h1>
         </div>
-      </header>
+
+        <div className="flex space-x-2">
+          <button
+            onClick={fetchData}
+            className="text-gray-600 hover:text-gray-800"
+            title="Refresh data"
+          >
+            <RefreshCw className="h-5 w-5" />
+          </button>
+          <button
+            onClick={() => {
+              setInitialFormData({});
+              setDefaultFormType('BUY');
+              setShowForm(true);
+            }}
+            className="bg-blue-600 text-white px-3 py-1 rounded-md flex items-center hover:bg-blue-700"
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            Add Trade
+          </button>
+        </div>
+      </div>
+    </header>
+
 
       {/* Navigation Tabs */}
       <nav className="bg-white border-b">
