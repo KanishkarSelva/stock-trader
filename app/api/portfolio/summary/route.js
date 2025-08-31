@@ -2,7 +2,6 @@ import { supabase } from '../../../../lib/supabaseClient';
 
 export async function GET() {
   try {
-    // Fetch all trades grouped by stock and trade_type
     const { data: trades, error } = await supabase
       .from('trades')
       .select('stock_symbol, trade_type, quantity, price');
@@ -18,34 +17,45 @@ export async function GET() {
       }), { status: 200 });
     }
 
-    // Compute totals
-    let totalInvested = 0;
-    let totalSellValue = 0;
-
-    // Track net shares per stock symbol
-    const holdingsMap = new Map();
+    // Maps for each stock
+    const holdingsMap = new Map();    // symbol -> net quantity
+    const investedMap = new Map();    // symbol -> invested amount (for current holdings)
+    let realizedPL = 0;
 
     for (const trade of trades) {
-      const qtyPrice = trade.quantity * trade.price;
       const symbol = trade.stock_symbol;
+      const qty = Number(trade.quantity);
+      const price = Number(trade.price);
+
+      const prevQty = holdingsMap.get(symbol) || 0;
+      const prevInvested = investedMap.get(symbol) || 0;
 
       if (trade.trade_type === 'BUY') {
-        totalInvested += qtyPrice;
-        holdingsMap.set(symbol, (holdingsMap.get(symbol) || 0) + trade.quantity);
+        // Add to holdings and invested
+        holdingsMap.set(symbol, prevQty + qty);
+        investedMap.set(symbol, prevInvested + qty * price);
       } else if (trade.trade_type === 'SELL') {
-        totalSellValue += qtyPrice;
-        holdingsMap.set(symbol, (holdingsMap.get(symbol) || 0) - trade.quantity);
+        // Calculate average cost for this stock
+        const avgCost = prevQty > 0 ? prevInvested / prevQty : 0;
+        // Realized P&L for this sell
+        realizedPL += (price - avgCost) * qty;
+        // Update holdings and invested
+        holdingsMap.set(symbol, prevQty - qty);
+        investedMap.set(symbol, prevInvested - avgCost * qty);
       }
     }
 
-    // Calculate realized P&L as totalSellValue - totalInvested (simplified)
-    const realizedPL = totalSellValue - totalInvested;
-
-    // Filter holdings with positive shares
-    const filteredHoldings = [...holdingsMap.values()].filter(qty => qty > 0);
-
-    const totalHoldings = filteredHoldings.length;
-    const totalShares = filteredHoldings.reduce((sum, qty) => sum + qty, 0);
+    // Only count invested in stocks with positive quantity
+    let totalInvested = 0;
+    let totalShares = 0;
+    let totalHoldings = 0;
+    for (const [symbol, qty] of holdingsMap.entries()) {
+      if (qty > 0) {
+        totalHoldings += 1;
+        totalShares += qty;
+        totalInvested += investedMap.get(symbol) || 0;
+      }
+    }
 
     return new Response(JSON.stringify({
       totalInvested,

@@ -8,6 +8,8 @@ import HoldingsList from './components/HoldingsList';
 import PortfolioSummary from './components/PortfolioSummary';
 import PortfolioCharts from './components/PortfolioCharts';
 import Image from "next/image";
+import WatchlistDisplay from './components/WatchlistDisplay';
+import QuickStockAdd from './components/QuickStockAdd';
 
 
 export default function Home() {
@@ -19,6 +21,7 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [initialFormData, setInitialFormData] = useState({});
   const [defaultFormType, setDefaultFormType] = useState('BUY');
+  const [refreshKey, setRefreshKey] = useState(0);
 
   async function fetchData() {
     setLoading(true);
@@ -142,7 +145,9 @@ export default function Home() {
       <main className="mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {activeTab === 'dashboard' && (
           <>
+          <QuickStockAdd onAdded={() => setRefreshKey(k => k + 1)} />
             <PortfolioSummary summary={summary} />
+            <WatchlistDisplay refreshKey={refreshKey} />
             <div className="grid lg:grid-cols-2 gap-4">
               <TradesList
                 trades={(trades || []).slice(0, 10)}

@@ -1,6 +1,7 @@
 import { TrendingUp, TrendingDown, DollarSign, PieChart } from 'lucide-react';
 
-export default function PortfolioSummary({ summary }) {
+export default function PortfolioSummary({ summary = {} }) {
+  console.log('PortfolioSummary summary:', summary);
   // Safely format numbers, defaulting to 0 if undefined
   const fmt = (v = 0) =>
     v.toLocaleString('en-US', { style: 'currency', currency: 'INR' });
@@ -49,7 +50,7 @@ export default function PortfolioSummary({ summary }) {
         </div>
         <div className="ml-3">
           <div className="text-sm text-gray-500">Total Shares</div>
-          <div className="font-semibold">{summary.totalStocks ?? 0}</div>
+          <div className="font-semibold">{summary.totalShares ?? 0}</div>
         </div>
       </div>
     </div>
