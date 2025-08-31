@@ -2,41 +2,58 @@ import { supabase } from '../../../../lib/supabaseClient';
 
 export async function GET() {
   try {
-    // Total invested: sum of quantity*price for BUY trades
-    const { data: buyData, error: buyError } = await supabase
+    // Fetch all trades grouped by stock and trade_type
+    const { data: trades, error } = await supabase
       .from('trades')
-      .select('quantity, price')
-      .eq('trade_type', 'BUY');
-    if (buyError) throw buyError;
-    const totalInvested = buyData.reduce((sum, trade) => sum + (trade.quantity * trade.price), 0);
+      .select('stock_symbol, trade_type, quantity, price');
 
-    // Total realized P&L: sum quantity*price for SELL trades
-    const { data: sellData, error: sellError } = await supabase
-      .from('trades')
-      .select('quantity, price')
-      .eq('trade_type', 'SELL');
-    if (sellError) throw sellError;
-    const totalSellValue = sellData.reduce((sum, trade) => sum + (trade.quantity * trade.price), 0);
+    if (error) throw error;
 
-    // NOTE: Realized P&L calculation ideally should subtract cost basis, here simplified:
+    if (!trades || trades.length === 0) {
+      return new Response(JSON.stringify({
+        totalInvested: 0,
+        realizedPL: 0,
+        totalHoldings: 0,
+        totalShares: 0
+      }), { status: 200 });
+    }
+
+    // Compute totals
+    let totalInvested = 0;
+    let totalSellValue = 0;
+
+    // Track net shares per stock symbol
+    const holdingsMap = new Map();
+
+    for (const trade of trades) {
+      const qtyPrice = trade.quantity * trade.price;
+      const symbol = trade.stock_symbol;
+
+      if (trade.trade_type === 'BUY') {
+        totalInvested += qtyPrice;
+        holdingsMap.set(symbol, (holdingsMap.get(symbol) || 0) + trade.quantity);
+      } else if (trade.trade_type === 'SELL') {
+        totalSellValue += qtyPrice;
+        holdingsMap.set(symbol, (holdingsMap.get(symbol) || 0) - trade.quantity);
+      }
+    }
+
+    // Calculate realized P&L as totalSellValue - totalInvested (simplified)
     const realizedPL = totalSellValue - totalInvested;
 
-    // Holdings count and total shares
-    const { data: holdings, error: holdingsError } = await supabase
-      .from('holdings')
-      .select('stock_symbol, total_quantity');
-    if (holdingsError) throw holdingsError;
-    const totalHoldings = holdings.length;
-    const totalStocks = holdings.reduce((sum, h) => sum + h.total_quantity, 0);
+    // Filter holdings with positive shares
+    const filteredHoldings = [...holdingsMap.values()].filter(qty => qty > 0);
 
-    const summary = {
+    const totalHoldings = filteredHoldings.length;
+    const totalShares = filteredHoldings.reduce((sum, qty) => sum + qty, 0);
+
+    return new Response(JSON.stringify({
       totalInvested,
       realizedPL,
       totalHoldings,
-      totalStocks
-    };
+      totalShares
+    }), { status: 200 });
 
-    return new Response(JSON.stringify(summary), { status: 200 });
   } catch (error) {
     return new Response(JSON.stringify({ error: error.message }), { status: 500 });
   }

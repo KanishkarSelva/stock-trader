@@ -3,7 +3,7 @@ import { TrendingUp, TrendingDown, DollarSign, PieChart } from 'lucide-react';
 export default function PortfolioSummary({ summary }) {
   // Safely format numbers, defaulting to 0 if undefined
   const fmt = (v = 0) =>
-    v.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+    v.toLocaleString('en-US', { style: 'currency', currency: 'INR' });
 
   const profit = (summary.realizedPL ?? 0) >= 0;
 

@@ -26,16 +26,26 @@ export default function Home() {
         fetch('/api/holdings'),
         fetch('/api/portfolio/summary')
       ]);
-      const [{ trades: tData }, { holdings: hData }, summaryData] = await Promise.all([
-        tRes.json(),
-        hRes.json(),
-        sRes.json()
-      ]);
+
+      const tJson = await tRes.json();
+      const hJson = await hRes.json();
+      const sJson = await sRes.json();
+
+      // trades → could be { trades: [...] } or just [...]
+      const tData = Array.isArray(tJson) ? tJson : tJson.trades;
+      // holdings → could be { holdings: [...] } or just [...]
+      const hData = Array.isArray(hJson) ? hJson : hJson.holdings;
+      // summary → just take as object
+      const summaryData = sJson || {};
+
       setTrades(Array.isArray(tData) ? tData : []);
       setHoldings(Array.isArray(hData) ? hData : []);
-      setSummary(summaryData || {});
+      setSummary(summaryData);
     } catch (err) {
       console.error('Error fetching data:', err);
+      setTrades([]);
+      setHoldings([]);
+      setSummary({});
     } finally {
       setLoading(false);
     }
@@ -64,7 +74,7 @@ export default function Home() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center py-4">
+        <div className="mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center py-4">
           <div className="flex items-center">
             <BarChart3 className="h-6 w-6 text-blue-600 mr-2" />
             <h1 className="text-2xl font-bold text-gray-900">Stock Tracker</h1>
@@ -94,7 +104,7 @@ export default function Home() {
 
       {/* Navigation Tabs */}
       <nav className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex space-x-8">
             {[
               { id: 'dashboard', label: 'Dashboard' },
@@ -119,7 +129,7 @@ export default function Home() {
       </nav>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {activeTab === 'dashboard' && (
           <>
             <PortfolioSummary summary={summary} />

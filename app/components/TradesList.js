@@ -5,7 +5,7 @@ export default function TradesList({ trades, onDeleted, onQuickAction }) {
     return new Date(d).toLocaleDateString();
   }
   function fmtCurr(v) {
-    return v.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+    return v.toLocaleString('en-US', { style: 'currency', currency: 'INR' });
   }
 
   async function handleDelete(id) {
