@@ -1,21 +1,21 @@
-'use client';  // Mark as client component since it uses hooks
+'use client';
 
 import { useState, useEffect } from 'react';
-import HoldingsList from '../components/HoldingsList'; // Adjust path if needed
+import HoldingsList from '../components/HoldingsList';
 
 export default function HoldingsPage() {
   const [holdings, setHoldings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     async function fetchHoldings() {
       try {
-        const res = await fetch('/api/holdings');
+        const res = await fetch(`/api/holdings?refresh=${Date.now()}`);
         if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
         const data = await res.json();
-
-        setHoldings(data);  // Pass fetched data to state
+        setHoldings(Array.isArray(data.holdings) ? data.holdings : []);
       } catch (err) {
         setError(err.message || 'Failed to load holdings');
       } finally {
@@ -23,11 +23,20 @@ export default function HoldingsPage() {
       }
     }
     fetchHoldings();
-  }, []);
+  }, [refreshKey]);
 
   if (loading) return <p>Loading holdings...</p>;
   if (error) return <p className="text-red-600">Error: {error}</p>;
 
-  // Pass holdings data as a prop to HoldingsList
-  return <HoldingsList holdings={holdings} />;
+  return (
+    <>
+      <button
+        className="mb-4 px-4 py-2 bg-blue-600 text-white rounded"
+        onClick={() => setRefreshKey(k => k + 1)}
+      >
+        Refresh Holdings
+      </button>
+      <HoldingsList holdings={holdings} />
+    </>
+  );
 }
